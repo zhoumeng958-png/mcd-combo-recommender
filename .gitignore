@@ -1,0 +1,38 @@
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+### IntelliJ IDEA ###
+.idea/
+*.iws
+*.iml
+*.ipr
+
+### Eclipse ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### VS Code ###
+.vscode/
+
+### Mac ###
+.DS_Store
+
+### Log ###
+*.log
+logs/
+
+### 本地覆盖配置（数据库密码等敏感信息放这里，不要提交）###
+src/main/resources/application-local.yml
+
+### 开发辅助 / 验证产物（不提交）###
+.screenshot/
+.verify/
+app.log
+
