@@ -231,7 +231,12 @@ mvn spring-boot:run
 ```bash
 # 方式二：本地覆盖文件（已在 .gitignore 中排除）
 # 创建 src/main/resources/application-local.yml 写入真实密码即可
+# application.yml 默认激活 dev,local 两个 profile，文件存在即自动生效
 ```
+
+> ⚠️ 方式二依赖 `spring.profiles.active` 中包含 `local`（本项目已默认配置）。
+> **不要用 `spring.config.import` 引入该文件**——它执行时机早于 profile 处理，
+> 会导致文件以低优先级加载并被去重跳过，密码永远不生效，详见 [ENV.md](ENV.md)。
 
 详见 **[ENV.md](ENV.md)**。
 
@@ -547,9 +552,26 @@ A：环境里存在 `SERVER__PORT` 环境变量。Spring Boot 的宽松绑定会
 且优先级高于 `application.yml`。用命令行参数覆盖即可：
 `mvn spring-boot:run -Dspring-boot.run.arguments=--server.port=8080`
 
+**Q：启动正常，但所有接口都返回 `500 系统繁忙，请稍后重试`？**
+A：**这是最容易踩的坑。** 表面看是"接口全挂"，实际是数据库连接用了空密码。
+排查方法：看控制台日志，若出现
+`Access denied for user 'root'@'localhost' (using password: NO)`
+（注意结尾是 `password: NO`，说明**密码根本没传**），即为本问题。
+
+原因是本地覆盖文件 `application-local.yml` 没被加载。两种修法：
+
+1. **确认 `local` profile 已激活**（本项目 `application.yml` 已默认 `dev,local`）。
+   切勿改用 `spring.config.import` 引入该文件——import 的执行时机**早于** profile 处理，
+   文件会以低优先级加载并在 profile 阶段被去重跳过，密码永远不生效。
+2. **改用环境变量**：设置 `MCD_DB_PASSWORD` 后重启。
+
+> 典型误判：把页面能打开、但接口全 500 当成"前端服务没启动"。
+> 本项目前后端不分离，**不存在独立的前端服务**；页面能渲染恰恰说明后端是通的。
+
 **Q：启动报 `Access denied for user 'root'@'localhost'`？**
-A：数据库密码未正确注入。本项目的密码走环境变量，请设置 `MCD_DB_PASSWORD`
-或创建本地覆盖文件 `application-local.yml`，详见 [ENV.md](ENV.md)。
+A：数据库密码未正确注入。请设置 `MCD_DB_PASSWORD` 环境变量，
+或创建本地覆盖文件 `application-local.yml`（需确保 `local` profile 处于激活状态），
+详见 [ENV.md](ENV.md)。
 
 **Q：`doc.html` 打不开？**
 A：确认端口未被占用；Knife4j 依赖首次需要联网下载。
