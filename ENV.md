@@ -42,6 +42,18 @@ spring:
 
 该文件已在 `.gitignore` 中排除，不会被提交。
 
+> ⚠️ **必须让 `local` profile 处于激活状态，否则该文件不会生效。**
+>
+> `application.yml` 中已默认设置 `spring.profiles.active: dev,local`，
+> 所以只要文件存在就会被自动加载，**无需任何额外参数**。
+>
+> **不要改用 `spring.config.import` 引入该文件。** 这是一个容易踩的坑：
+> `spring.config.import` 的执行时机**早于** profile 处理，因此被导入的文件
+> 会以**低优先级**加载，随后在 profile 阶段又被**去重跳过**。
+> 结果是它永远被 `application-dev.yml` 里的 `${MCD_DB_PASSWORD:}`（空值）覆盖，
+> 表现为启动正常、但所有接口都报 `500 系统繁忙`，
+> 日志里是 `Access denied for user 'root'@'localhost' (using password: NO)`。
+
 ---
 
 ## 二、麦当劳 MCP 配置
