@@ -1,0 +1,558 @@
+/* =========================================================
+   麦当劳套餐推荐助手 - 全局样式
+   主色调：麦当劳红 #DA291C / 金黄 #FFC72C
+   ========================================================= */
+:root {
+    --mcd-red: #DA291C;
+    --mcd-red-dark: #B71C1C;
+    --mcd-yellow: #FFC72C;
+    --mcd-dark: #2C2C2C;
+    --mcd-gray: #F5F5F5;
+    --mcd-border: #EBEEF5;
+}
+
+/* ---------------- 登录页 ---------------- */
+.login-wrap {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #DA291C 0%, #8E1611 55%, #2C2C2C 100%);
+    padding: 24px;
+}
+
+.login-box {
+    width: 100%;
+    max-width: 400px;
+    background: #fff;
+    border-radius: 14px;
+    padding: 34px 32px 26px;
+    box-shadow: 0 18px 50px rgba(0, 0, 0, .3);
+}
+
+.login-brand {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.login-brand .brand-icon {
+    width: 58px;
+    height: 58px;
+    background: var(--mcd-yellow);
+    color: var(--mcd-red);
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 34px;
+    font-weight: 900;
+    margin-bottom: 12px;
+    box-shadow: 0 4px 14px rgba(255, 199, 44, .5);
+}
+
+.login-brand h1 {
+    font-size: 19px;
+    margin: 0 0 6px;
+    color: var(--mcd-dark);
+}
+
+.login-brand p {
+    font-size: 12.5px;
+    color: #909399;
+    margin: 0;
+}
+
+.login-tip {
+    margin-top: 14px;
+    padding: 9px 12px;
+    background: #FFF9E6;
+    border-radius: 6px;
+    font-size: 12.5px;
+    color: #8A6D00;
+    text-align: center;
+}
+
+.login-tip i {
+    margin-right: 4px;
+}
+
+/* 顶部用户区 */
+.user-area {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.user-area .user-name {
+    font-size: 13.5px;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.user-area .role-tag {
+    background: var(--mcd-yellow);
+    color: var(--mcd-red);
+    font-size: 10.5px;
+    padding: 1px 7px;
+    border-radius: 9px;
+    font-weight: 700;
+}
+
+.user-area .logout-btn {
+    color: rgba(255, 255, 255, .85);
+    font-size: 13px;
+    cursor: pointer;
+    padding: 5px 10px;
+    border-radius: 5px;
+    transition: all .2s;
+    white-space: nowrap;
+}
+
+.user-area .logout-btn:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, .16);
+}
+
+/* 防止 Vue 未挂载前模板闪烁 */
+[v-cloak] {
+    display: none;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+}
+
+body {
+    font-family: "PingFang SC", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+    background: var(--mcd-gray);
+    color: var(--mcd-dark);
+    font-size: 14px;
+}
+
+#app {
+    min-height: 100vh;
+}
+
+/* ---------------- 顶部导航 ---------------- */
+.mcd-header {
+    background: linear-gradient(135deg, var(--mcd-red) 0%, var(--mcd-red-dark) 100%);
+    color: #fff;
+    padding: 0 32px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, .18);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.mcd-header .logo {
+    display: flex;
+    align-items: center;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: .5px;
+}
+
+.mcd-header .logo-icon {
+    width: 38px;
+    height: 38px;
+    background: var(--mcd-yellow);
+    color: var(--mcd-red);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    font-weight: 900;
+    margin-right: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, .2);
+}
+
+.mcd-header .logo-sub {
+    font-size: 12px;
+    font-weight: 400;
+    opacity: .85;
+    margin-left: 10px;
+    padding-left: 10px;
+    border-left: 1px solid rgba(255, 255, 255, .35);
+}
+
+/* 顶部导航菜单 */
+.mcd-nav {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.mcd-nav a {
+    color: rgba(255, 255, 255, .82);
+    text-decoration: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: all .2s;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.mcd-nav a:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, .14);
+}
+
+.mcd-nav a.active {
+    color: var(--mcd-red);
+    background: var(--mcd-yellow);
+    font-weight: 600;
+}
+
+/* ---------------- 主体容器 ---------------- */
+.mcd-main {
+    padding: 22px 32px 48px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.page-title {
+    font-size: 22px;
+    font-weight: 700;
+    margin: 0 0 6px;
+    color: var(--mcd-dark);
+}
+
+.page-desc {
+    color: #909399;
+    font-size: 13px;
+    margin: 0 0 20px;
+}
+
+/* ---------------- 卡片 ---------------- */
+.el-card {
+    border-radius: 10px !important;
+    border: 1px solid var(--mcd-border) !important;
+}
+
+.card-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--mcd-dark);
+    display: flex;
+    align-items: center;
+}
+
+.card-title::before {
+    content: '';
+    width: 4px;
+    height: 16px;
+    background: var(--mcd-red);
+    border-radius: 2px;
+    margin-right: 9px;
+}
+
+/* ---------------- 推荐结果卡片 ---------------- */
+.rank-badge {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+    color: #fff;
+    background: #C0C4CC;
+    flex-shrink: 0;
+}
+
+.rank-badge.rank-1 {
+    background: linear-gradient(135deg, #FFD700, #FFA000);
+    box-shadow: 0 2px 8px rgba(255, 167, 38, .45);
+}
+
+.rank-badge.rank-2 {
+    background: linear-gradient(135deg, #B0BEC5, #78909C);
+}
+
+.rank-badge.rank-3 {
+    background: linear-gradient(135deg, #D7A86E, #A9743C);
+}
+
+.rec-card {
+    border: 1px solid var(--mcd-border);
+    border-radius: 10px;
+    padding: 16px 18px;
+    margin-bottom: 14px;
+    background: #fff;
+    transition: all .22s;
+    position: relative;
+}
+
+.rec-card:hover {
+    box-shadow: 0 6px 20px rgba(0, 0, 0, .1);
+    transform: translateY(-2px);
+}
+
+.rec-card.top-1 {
+    border: 2px solid var(--mcd-yellow);
+    background: linear-gradient(180deg, #FFFDF5 0%, #FFFFFF 60%);
+}
+
+.rec-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.rec-name {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--mcd-dark);
+    margin: 0 0 4px;
+}
+
+.rec-desc {
+    color: #909399;
+    font-size: 12.5px;
+    margin: 0;
+    line-height: 1.5;
+}
+
+.rec-price {
+    text-align: right;
+    flex-shrink: 0;
+}
+
+.rec-price .now {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--mcd-red);
+}
+
+.rec-price .now small {
+    font-size: 13px;
+    font-weight: 400;
+}
+
+.rec-price .old {
+    font-size: 12px;
+    color: #C0C4CC;
+    text-decoration: line-through;
+    display: block;
+}
+
+/* 综合得分 */
+.score-box {
+    text-align: center;
+    padding: 0 10px;
+    flex-shrink: 0;
+    min-width: 88px;
+}
+
+.score-num {
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--mcd-red);
+    line-height: 1;
+}
+
+.score-label {
+    font-size: 11px;
+    color: #909399;
+    margin-top: 4px;
+}
+
+/* 推荐理由 */
+.reason-list {
+    margin: 12px 0 0;
+    padding: 10px 14px;
+    background: #FFF9E6;
+    border-radius: 8px;
+    border-left: 3px solid var(--mcd-yellow);
+}
+
+.reason-list li {
+    list-style: none;
+    font-size: 13px;
+    color: #7A5C00;
+    line-height: 1.9;
+    position: relative;
+    padding-left: 18px;
+}
+
+.reason-list li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    color: #E6A700;
+    font-weight: 700;
+}
+
+/* 得分明细 */
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    margin-bottom: 5px;
+    color: #606266;
+}
+
+.detail-row .score-val {
+    font-weight: 600;
+    color: var(--mcd-red);
+}
+
+/* 套餐内容 */
+.combo-items {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--mcd-border);
+    font-size: 12.5px;
+    color: #606266;
+}
+
+.combo-items .item-tag {
+    display: inline-block;
+    background: var(--mcd-gray);
+    border-radius: 4px;
+    padding: 2px 9px;
+    margin: 2px 5px 2px 0;
+}
+
+/* ---------------- 空状态 / 加载 ---------------- */
+.empty-box {
+    text-align: center;
+    padding: 50px 20px;
+    color: #909399;
+}
+
+.empty-box .empty-icon {
+    font-size: 46px;
+    color: #DCDFE6;
+    margin-bottom: 12px;
+}
+
+/* 一句话总结 */
+.summary-bar {
+    background: linear-gradient(135deg, #FFF6E5, #FFFBF0);
+    border: 1px solid #FFE0A3;
+    border-radius: 8px;
+    padding: 13px 18px;
+    margin-bottom: 16px;
+    font-size: 13.5px;
+    color: #8A6D00;
+    line-height: 1.6;
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+}
+
+.summary-bar i {
+    color: var(--mcd-yellow);
+    font-size: 17px;
+    margin-top: 1px;
+}
+
+/* 统计数字块 */
+.stat-block {
+    text-align: center;
+    padding: 14px 6px;
+    border-radius: 8px;
+    background: #fff;
+    border: 1px solid var(--mcd-border);
+}
+
+.stat-block .num {
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--mcd-red);
+    line-height: 1.1;
+}
+
+.stat-block .lbl {
+    font-size: 12px;
+    color: #909399;
+    margin-top: 5px;
+}
+
+/* 表单区 */
+.filter-form .el-form-item {
+    margin-bottom: 14px;
+}
+
+/* 表格微调 */
+.el-table .cell {
+    font-size: 13px;
+}
+
+.price-text {
+    color: var(--mcd-red);
+    font-weight: 700;
+}
+
+/* 滚动条 */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #C8CDD4;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #A8AFB8;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+/* 响应式 */
+@media (max-width: 900px) {
+    .mcd-main {
+        padding: 16px 14px 40px;
+    }
+
+    .mcd-header {
+        padding: 0 14px;
+        height: auto;
+        flex-wrap: wrap;
+        gap: 8px;
+        padding-top: 10px;
+        padding-bottom: 10px;
+    }
+
+    .mcd-header .logo-sub {
+        display: none;
+    }
+
+    .mcd-nav {
+        flex-wrap: wrap;
+        gap: 2px;
+    }
+
+    .mcd-nav a {
+        padding: 6px 10px;
+        font-size: 13px;
+    }
+
+    .rec-head {
+        flex-wrap: wrap;
+    }
+
+    .rec-price {
+        text-align: left;
+    }
+}
