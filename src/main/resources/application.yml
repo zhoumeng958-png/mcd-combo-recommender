@@ -9,12 +9,13 @@ spring:
   application:
     name: mcd-combo-recommender
   profiles:
-    # 默认激活 dev；如需覆盖数据库密码，在本地创建 application-local.yml
-    # 并以 --spring.profiles.active=dev,local 启动即可
-    active: dev
-  # 本地覆盖文件（不存在则自动忽略，不影响正常启动）
-  config:
-    import: optional:classpath:application-local.yml
+    # dev   : 开发环境基础配置（application-dev.yml）
+    # local : 本地私有覆盖（application-local.yml，已在 .gitignore 中）
+    #         缺少该文件时会被自动忽略，不影响启动
+    # 注意：不要用 spring.config.import 引入 application-local.yml——
+    #       import 在 profile 处理之前执行，会导致该文件以低优先级加载、
+    #       随后在 profile 阶段被去重跳过，密码等覆盖项将永远不生效。
+    active: dev,local
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
     time-zone: GMT+8
