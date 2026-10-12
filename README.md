@@ -1,4 +1,4 @@
-# 麦当劳套餐推荐助手（mcd-combo-recommender）
+﻿# 麦当劳套餐推荐助手（mcd-combo-recommender）
 
 基于 **Spring Boot + 可插拔规则策略引擎** 的麦当劳套餐智能推荐系统。
 
@@ -546,6 +546,17 @@ public class HealthyStrategy implements RecommendStrategy {
 ---
 
 ## 九、常见问题
+
+**Q：在 Windows 中打开 README，中文显示乱码？**
+A：本文件使用 **UTF-8** 编码，并带有 BOM 编码标记，便于旧版 Windows 编辑器识别。
+若仍显示乱码，请在编辑器中选择「以 UTF-8 编码重新打开」，确认中文恢复后再保存。
+不要直接保存乱码内容，以免覆盖原文。
+
+在 PowerShell 中查看时，可显式指定 UTF-8：
+
+```powershell
+Get-Content -LiteralPath .\README.md -Encoding UTF8
+```
 
 **Q：启动后端口不是 8080，报 `Port xxxx is already in use`？**
 A：环境里存在 `SERVER__PORT` 环境变量。Spring Boot 的宽松绑定会把它解析成 `server.port`
