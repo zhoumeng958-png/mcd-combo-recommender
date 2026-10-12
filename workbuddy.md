@@ -238,12 +238,6 @@ The user cancelled this task. Do NOT restart or retry it. Acknowledge briefly, t
 
 ---
 
-### 29. 🧑 用户　`10-10 17:01`
-
-我正在参加一个比赛，我想要你帮我开发一个麦当劳套餐推荐助手，java语言，springboot项目，你可以先帮我搭好项目框架不，D:\ZM\MMdang代码写在这个路径下
-
----
-
 ### 30. 🤖 WorkBuddy　`10-10 17:11`
 
 这个项目上一轮已经搭好了，我先确认文件还在，然后把上次没跑通的编译补上。
