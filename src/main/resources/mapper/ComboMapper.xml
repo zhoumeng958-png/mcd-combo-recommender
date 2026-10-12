@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mcd.recommender.mapper.ComboMapper">
+
+    <!-- 按分类统计套餐：数量、平均价格、平均热量、总销量 -->
+    <select id="selectCategoryStat" resultType="java.util.LinkedHashMap">
+        SELECT c.category                                   AS category,
+               COUNT(*)                                     AS comboCount,
+               ROUND(AVG(c.price), 2)                       AS avgPrice,
+               ROUND(AVG(c.calories), 0)                    AS avgCalories,
+               SUM(c.sales_count)                           AS totalSales,
+               ROUND(AVG(c.rating), 2)                      AS avgRating
+        FROM mcd_combo c
+        WHERE c.deleted = 0
+          AND c.status = 1
+        GROUP BY c.category
+        ORDER BY totalSales DESC
+    </select>
+
+</mapper>
