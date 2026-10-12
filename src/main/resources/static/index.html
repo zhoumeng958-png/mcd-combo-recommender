@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>麦当劳套餐推荐助手</title>
+
+    <!-- 内联 favicon（金色 M），避免额外的 404 请求 -->
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23DA291C'/%3E%3Ctext x='32' y='46' font-size='42' font-family='Arial' font-weight='bold' fill='%23FFC72C' text-anchor='middle'%3EM%3C/text%3E%3C/svg%3E">
+
+    <!-- Element UI 样式（本地，无需联网） -->
+    <link rel="stylesheet" href="/lib/element-ui.css">
+    <link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+
+<div id="app" v-cloak>
+    <!-- ============ 未登录：只显示登录页 ============ -->
+    <page-login v-if="!logged"
+                @login-success="onLoginSuccess"></page-login>
+
+    <!-- ============ 已登录：正常业务界面 ============ -->
+    <template v-else>
+        <!-- 顶部导航 -->
+        <header class="mcd-header">
+            <div class="logo">
+                <div class="logo-icon">M</div>
+                <span>麦当劳套餐推荐助手</span>
+                <span class="logo-sub">McDonald's Combo Recommender</span>
+            </div>
+
+            <nav class="mcd-nav">
+                <a v-for="p in pages" :key="p.key"
+                   :class="{active: currentPage === p.key}"
+                   @click="switchPage(p.key)">
+                    <i :class="p.icon"></i> {{ p.label }}
+                </a>
+            </nav>
+
+            <div class="user-area">
+                <span class="user-name">
+                    <i class="el-icon-user-solid"></i>
+                    {{ displayName }}
+                    <span class="role-tag" v-if="isAdmin">管理员</span>
+                </span>
+                <span class="logout-btn" @click="doLogout">
+                    <i class="el-icon-switch-button"></i> 退出
+                </span>
+            </div>
+        </header>
+
+        <!-- 主体内容：根据当前页动态渲染组件 -->
+        <main class="mcd-main">
+            <keep-alive>
+                <component :is="currentComponent"></component>
+            </keep-alive>
+        </main>
+    </template>
+</div>
+
+<!-- 依赖库（本地） -->
+<script src="/lib/vue.min.js"></script>
+<script src="/lib/element-ui.js"></script>
+
+<!-- 业务脚本 -->
+<script src="/js/common.js"></script>
+<script src="/js/api.js"></script>
+<script src="/js/components/login.js"></script>
+<script src="/js/components/recommend.js"></script>
+<script src="/js/components/combo.js"></script>
+<script src="/js/components/product.js"></script>
+<script src="/js/components/dashboard.js"></script>
+<script src="/js/app.js"></script>
+</body>
+</html>
