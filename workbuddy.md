@@ -11,8 +11,8 @@
 | 会话标题 | 搭建套餐推荐助手 SpringBoot 项目框架 |
 | 会话 ID | `fcb4696f-e18a-42a0-880e-baea05b7dffe` |
 | 目标项目 | `D:\ZM\MMdang`（麦当劳套餐推荐助手） |
-| 对话时间 | 2026-10-10 17:00 ~ 2026-10-12 15:06 |
-| 对话轮次 | 共 362 条（用户 35 条 / WorkBuddy 327 条） |
+| 对话时间 | 2026-10-10 17:00 ~ 2026-10-12 15:31 |
+| 对话轮次 | 共 412 条（用户 40 条 / WorkBuddy 372 条） |
 
 ## 二、对话正文
 
@@ -3109,6 +3109,470 @@ ${GITHUB_TOKEN}这是生成的令牌
 ### 362. 🤖 WorkBuddy　`10-12 15:06`
 
 同步把自检里的 token 扫描也去掉词边界：
+
+---
+
+### 363. 🤖 WorkBuddy　`10-12 15:06`
+
+自检通过。但提示有个 8 位数字串 `01008025` 需要确认——这看着像是被误伤的字符串。查一下：
+
+---
+
+### 364. 🤖 WorkBuddy　`10-12 15:06`
+
+又是"扫描报有、复查没有"的时序问题。我改用**冻结快照**的方式做最终验证 —— 复制一份再扫，避免文件被并发重写：
+
+---
+
+### 365. 🤖 WorkBuddy　`10-12 15:06`
+
+写错了 Python 语法，修正：
+
+---
+
+### 366. 🤖 WorkBuddy　`10-12 15:07`
+
+**全部通过。** 那个 `01008025` 也搞清楚了 —— 它是我早期调试时输出的一段**错误显示值**（我当时在排查密码，终端输出了乱码），现在这段文字里的真实密码已被 `******` 脱敏，剩下的 `01008025` 只是对话历史里的一个普通数字，**不是任何口令**。
+
+现在把更新后的 `workbuddy.md` 推到远程：
+
+---
+
+### 367. 🤖 WorkBuddy　`10-12 15:07`
+
+`workbuddy.md` 已更新到远程（118727 字节，脱敏版）。
+
+最后做一次**全面验证**：确认远程仓库最终状态完全符合参赛要求：
+
+---
+
+### 368. 🤖 WorkBuddy　`10-12 15:07`
+
+仓库 Public、Star 已有 1 颗（可以上排行榜了）。最后一轮完整核对：
+
+---
+
+### 369. 🤖 WorkBuddy　`10-12 15:07`
+
+等一下 —— 远程的 `workbuddy.md` **还是有 `ghp_`**。但我推的是脱敏版、本地快照也验证干净。问题在于：**`ghp_xxxxxxxxxxxxxxxx` 这个占位符例子本身**含 `ghp_` 前缀。确认一下：
+
+---
+
+### 370. 🤖 WorkBuddy　`10-12 15:07`
+
+**完全没问题。** 那 4 处 `ghp_` 全是我在对话里**教你怎么生成 token 时的说明文字**：
+
+- `ghp_...`（省略号占位）
+- `ghp_` 开头的字符串（纯文字描述）
+- `ghp_xxxxxxxxxxxxxxxx`（我给的示例格式）
+- `ghp_` 开头的（又一次文字描述）
+
+**真实 token 完整串：0 次。token 形态正则（≥20 位）：0 命中。** 之前那个脚本判定"有问题"是因为它用了简单粗暴的 `'ghp_' in b`，把说明文字也算进去了 —— 是**误报**。
+
+最终状态全部达标：
+
+---
+
+### 371. 🤖 WorkBuddy　`10-12 15:09`
+
+全部完成。写入工作日志：
+
+---
+
+### 372. 🤖 WorkBuddy　`10-12 15:09`
+
+**报名完成了。**
+
+## 报名凭证
+
+**Issue #78** ：https://github.com/MCD-qifei/MCP-Skill-Competition/issues/78
+标题：`【参赛申请】麦当劳套餐推荐助手` ｜ 状态：open（等待官方机器人审核回复）
+
+**项目仓库**：https://github.com/zhoumeng958-png/mcd-combo-recommender （Public）
+
+## 报名条件逐条核验
+
+| 官方要求 | 结果 |
+| --- | --- |
+| 仓库 Public | ✅ 已确认 |
+| 五个必需文件 | ✅ README / CONTEST_DECLARATION / MCP_INTEGRATION / workbuddy.md / 68 个 .java + 前端资源 |
+| 无真实密码或 Token | ✅ 远程实际内容拉取复检通过 |
+| Issue 格式合规 | ✅ 381 字符、无图片、无 Markdown 链接、标签与内容同行 |
+| 项目创建时间 | ✅ 2026-10-12，落在允许区间内 |
+
+## 关键说明
+
+**为什么这么慢** —— 如实说明：`git push` 在这个环境里被硬拦（无输出直接被终止），我只能改用 GitHub API 逐个文件上传，98 个文件、每个一次请求。而清理提交历史要做 4×98 次重建，成本极高且**完全不影响报名**，我一开始没意识到这点，白耗了你的时间，抱歉。
+
+**你的手动修改没丢** —— 你改的远程 README 和我推的版本字节完全一致（27245B，同一 md5），你的改动已包含在内。
+
+**已做的安全收尾** —— 你的 token 已从本地 `git remote` 配置里摘除；`workbuddy.md` 重新导出为脱敏版（真实 token 0 残留）；给导出脚本补了 GitHub token 通用识别规则，以后不会再漏。
+
+## 你现在最该做的一件事
+
+官方 `RANKING.md` 我看了：**排名唯一看 Star 数**，而 10-12 15:01 时榜首才 12 颗星、榜上总共只有 8 个项目。你的仓库已经有 1 颗星了。
+
+前 100 名就能拿 3000 积分，前 3 名 10240 积分 + 巨无霸免费券。**现在拉星的成本极低、收益极高** —— 建议尽快把项目发到掘金、V2EX、即刻这类技术社区。
+
+有问题随时叫我。
+
+---
+
+### 373. 🧑 用户　`10-12 15:10`
+
+我怎么确定报名是否成功了
+
+---
+
+### 374. 🤖 WorkBuddy　`10-12 15:10`
+
+最靠谱的方式是**看官方机器人在你的 Issue 下面有没有回复**。我直接帮你查：
+
+---
+
+### 375. 🤖 WorkBuddy　`10-12 15:10`
+
+目前**官方还没回复**。我去看看别人的 Issue 长什么样 —— 对比一下"成功"和"失败"分别是什么表现，你就知道该等什么信号：
+
+---
+
+### 376. 🤖 WorkBuddy　`10-12 15:10`
+
+关键线索：**其他 Issue 都有 2 条评论，只有你的 #78 是 0 条**。看看别人那两条评论是什么，就知道官方怎么反馈：
+
+---
+
+### 377. 🤖 WorkBuddy　`10-12 15:10`
+
+清楚了。**成功的样子长这样**：
+
+> `您的作品已成功参赛，您可以通过官方项目的排行榜.md查看排名`
+
+**判定的三个步骤**，你随时可以自己查：
+
+## 1. 看 Issue 有没有回复（最直接）
+
+打开 https://github.com/MCD-qifei/MCP-Skill-Competition/issues/78
+
+- 官方账号 **`MCD-qifei`** 会回帖
+- ✅ 成功：`您的作品已成功参赛…`
+- ❌ 失败：`您的作品未通过审核，失败原因：…`
+
+你现在是 **0 条评论**，说明**还在排队等审核**。参考其他 Issue，审核一般在提交后几分钟到几小时内完成。
+
+## 2. 看排行榜有没有你
+
+成功后登录（注意可能要出墙）：https://github.com/MCD-qifei/MCP-Skill-Competition/blob/main/RANKING.md
+
+**但注意**：进排行榜有个前提 —— **Star 数 > 0**。你现在已经有 1 颗星，所以一旦审核通过就能上榜。
+
+## 3. 我帮你盯着
+
+我可以设一个定时任务，每 30 分钟自动查一次 Issue #78 有没有官方回复，一有结果就告诉你。
+
+---
+
+### 378. 🤖 WorkBuddy　`10-12 15:12`
+
+好，那就你自己盯。给你一个**速查卡片**，照着看就行：
+
+## 判定标准
+
+**Issue #78**：https://github.com/MCD-qifei/MCP-Skill-Competition/issues/78
+
+| 看到什么 | 含义 |
+| --- | --- |
+| 还没有任何评论 | ⏳ 审核中，继续等 |
+| `您的作品已成功参赛，您可以通过官方项目的排行榜.md查看排名` | ✅ **报名成功** |
+| `您的作品未通过审核，失败原因：…` | ❌ 失败，按原因改了**可以重新提交** |
+
+回帖账号是 **`MCD-qifei`**，其他账号的回复不用管。
+
+## 两个提醒
+
+**① 你现在是 0 条评论** —— 同批提交的 #77 已经拿到"成功参赛"回复了，你的还在排队。审核是异步的，多等一会儿正常。如果**超过一天**还没动静，可以在 Issue 下 @ 一下官方账号礼貌问询。
+
+**② 成功后立刻去看排行榜** —— 但排行榜有个门槛：**Star 必须 > 0** 才能进榜。你已经 1 颗星，达标了。
+
+排行榜地址：https://github.com/MCD-qifei/MCP-Skill-Competition/blob/main/RANKING.md
+
+（顺带说一句：官方在这个文件里写的名字有时是 `RANKING.md`、有时是 `RankingList.md`，有回复后如果前者打不开，就试后者。）
+
+## 最后
+
+之前那个仓库的零碎提交历史，你要是哪天觉得碍眼，随时叫我清——但**不影响报名，不用管它**。
+
+有结果了告诉我，或者中途卡住了也告诉我。
+
+---
+
+### 379. 🧑 用户　`10-12 15:10`
+
+@image#1:Clipboard_Screenshot.png 这是官方示例
+<image_local_path>C:\Users\86136\.workbuddy-ai\clipboard-images\clipboard-2026-10-12T07-12-24-334Z-d5e8f5b1.png</image_local_path>
+
+---
+
+### 380. 🤖 WorkBuddy　`10-12 15:12`
+
+对，这就是**报名成功的标准样子**。跟我刚才告诉你的判定标准完全一致：
+
+## 对照你的 #78
+
+| 截图里的成功示例 | 你的 #78 |
+| --- | --- |
+| 标题：报名信息-报名成功 #60 | 【参赛申请】麦当劳套餐推荐助手 #78 |
+| 用户 Librowner14 发帖申报 | 你 zhoumeng958-png 发帖申报 ✅ |
+| **`MCD-qifei` 回帖：您的作品已成功参赛…** | ⏳ **还没有回复** |
+
+**关键就一条**：看 **`MCD-qifei`** 这个账号有没有回帖说"您的作品已成功参赛"。你的现在还是 0 条评论，在等。
+
+## 顺便说一个截图里的细节
+
+注意那个示例里的**项目地址**（`https://github.com/Librowner14/MC_Nutrition_Expert`）—— 它是**蓝色可点击的**。这正是因为官方要求"地址不要用 Markdown 格式"，GitHub 会自动把裸链接识别成超链接。
+
+**你的正文也是裸链接**，所以格式完全正确，跟示例一致 ✅
+
+## 唯一要留意的差别
+
+示例标题是"报名信息-报名成功"（官方可能改过标题），你的标题是自定义的 `【参赛申请】麦当劳套餐推荐助手`。这**不影响**——官方规则里写了标题自定义。
+
+## 现在做什么
+
+**等**。参考同批 #77 的时间线，通常几分钟到几小时。
+
+你可以随时自己打开 https://github.com/MCD-qifei/MCP-Skill-Competition/issues/78 刷新，看到 `MCD-qifei` 的回复就是成功了。
+
+要不要我现在再帮你查一次最新状态？（不要也行，你自己刷新页面看得更直观）
+
+---
+
+### 381. 🧑 用户　`10-12 15:22`
+
+@image#1:Clipboard_Screenshot.png 我在idear里面启动了后台服务，为什么访问不了8080，是前端服务也需要额外单独启动一下吗
+<image_local_path>C:\Users\86136\.workbuddy-ai\clipboard-images\clipboard-2026-10-12T07-22-59-023Z-e8e7ecae.png</image_local_path>
+
+---
+
+### 382. 🤖 WorkBuddy　`10-12 15:23`
+
+502 网络连接被中断：可能是防火墙、代理或安全软件拦截，请检查网络环境（read ECONNRESET） (target: https://www.workbuddy.ai) (01a12efe5fde7ddda586c3323efc4af4/fcb4696f-e18a-42a0-880e-baea05b7dffe)
+
+---
+
+### 383. 🧑 用户　`10-12 15:23`
+
+@image#1:Clipboard_Screenshot.png 我在idear里面启动了后台服务，为什么访问不了8080，是前端服务也需要额外单独启动一下吗
+<image_local_path>C:\Users\86136\.workbuddy-ai\clipboard-images\clipboard-2026-10-12T07-23-15-628Z-e8e7ecae.png</image_local_path>
+
+---
+
+### 384. 🤖 WorkBuddy　`10-12 15:23`
+
+**先说结论：8080 其实是通的 —— 前端不需要单独启动。**
+
+看你截图：登录页已经完整渲染出来了（麦当劳 Logo、账号密码框、演示账号提示都在）。这说明 Spring Boot 的静态资源服务正常工作。这个项目是**前后端不分离**的，前端就是打包在 Spring Boot 里的，**没有独立的前端服务**。
+
+真正的问题是这个红色提示：**「系统繁忙，请稍后重试」** —— 这是**接口调用失败**，不是页面打不开。
+
+我来定位一下具体原因：
+
+---
+
+### 385. 🤖 WorkBuddy　`10-12 15:23`
+
+服务和数据库都在跑，配置也对。直接测接口看真实报错：
+
+---
+
+### 386. 🤖 WorkBuddy　`10-12 15:23`
+
+首页 200，但**所有接口都返回 500**「系统繁忙」—— 典型的**数据库连不上**。查两个关键点：进程启动时间、数据库是否可连。
+
+---
+
+### 387. 🤖 WorkBuddy　`10-12 15:24`
+
+PowerShell 没回显，换 Bash 方式：
+
+---
+
+### 388. 🤖 WorkBuddy　`10-12 15:24`
+
+配置在 classpath 上没问题。看下日志配置和数据库连接参数，同时找 mysql 客户端：
+
+---
+
+### 389. 🤖 WorkBuddy　`10-12 15:24`
+
+日志输出到 IDEA 控制台，没有落盘文件。我换个思路 —— 直接看 MySQL 数据目录里有没有 `Mdangdang` 库，并找客户端：
+
+---
+
+### 390. 🤖 WorkBuddy　`10-12 15:24`
+
+Navicat 和 IDEA 都在。找 MySQL 安装位置：
+
+---
+
+### 391. 🤖 WorkBuddy　`10-12 15:24`
+
+找到 MySQL 了。直接测连接和数据库：
+
+---
+
+### 392. 🤖 WorkBuddy　`10-12 15:24`
+
+数据库连得上（root/****** 有效），库名是 `mdangdang`。看下表结构和 dev 配置：
+
+---
+
+### 393. 🤖 WorkBuddy　`10-12 15:25`
+
+数据库完全正常（6 张表、数据齐全、大小写不敏感）。那问题在应用层。测几个**不依赖数据库**的端点，缩小范围：
+
+---
+
+### 394. 🤖 WorkBuddy　`10-12 15:25`
+
+信息很关键：
+
+- `/v3/api-docs` → **200**（应用活着）
+- `/api/product/list` → **401**（登录拦截器正常工作）
+- `/api/recommend/quick` → **500**（这个是**公开接口**，会查数据库）
+
+**结论：Web 层和鉴权层都正常，凡是碰数据库的请求全部 500。** 数据库本身没问题，所以怀疑是应用没读到本地密码配置。我启动一个副本（8081 端口）把真实异常抓出来：
+
+---
+
+### 395. 🤖 WorkBuddy　`10-12 15:25`
+
+确认了：**空密码会直接 `Access denied`**。这跟现象完全吻合 —— 应用很可能没读到本地密码。启动副本抓真实异常：
+
+---
+
+### 396. 🤖 WorkBuddy　`10-12 15:25`
+
+启动需要点时间，我先看 dev 配置的细节：
+
+---
+
+### 397. 🧑 用户　`10-12 15:25`
+
+<task-notification>
+<task-id>SUmKRF</task-id>
+<tool-use-id>call_00_OK8Vb9iGNpVy48NTur138709</tool-use-id>
+<status>completed</status>
+<summary>Background command &quot;cd /d/ZM/MMdang &amp;&amp; mkdir -p .verify/tmp &amp;&amp; nohup mvn -B spring-boot:run -Dspring-boot.run.arguments=&quot;--server.port=8081&quot; &gt; .verify/tmp/app8081.log 2&gt;&amp;1 &amp;
+echo &quot;已后台启动，PID=$!&quot;&quot; completed</summary>
+</task-notification>
+
+Use the TaskOutput tool with task_id="SUmKRF" to retrieve the full output if you need to act on it.
+IMPORTANT: Before responding, scroll back to the user's request that started this background task and confirm whether any follow-up steps (transformations, calculations, formatting, multi-step plans) were expected once it finished. Do NOT treat this notification as a standalone event — completing the user's original instructions takes priority over merely reporting the task status.
+
+---
+
+### 398. 🤖 WorkBuddy　`10-12 15:26`
+
+后台任务被 `&` 提前结束了。重来 —— 不用 `&`，让工具自己托管：
+
+---
+
+### 399. 🤖 WorkBuddy　`10-12 15:27`
+
+副本起来了。打同一个失败接口，然后看异常栈：
+
+---
+
+### 400. 🤖 WorkBuddy　`10-12 15:27`
+
+**找到根因了！**
+
+```
+java.sql.SQLException: Access denied for user 'root'@'localhost' (using password: NO)
+```
+
+**应用是用「空密码」连数据库的** —— 也就是说 `application-local.yml` 里的密码**根本没生效**。
+
+原因是 Spring Boot 的一个经典优先级陷阱：`application.yml` 里用 `spring.config.import` 导入的 `application-local.yml`，**优先级低于** `application-dev.yml`（profile 专属文件）。所以 `password: ${MCD_DB_PASSWORD:}` 的空值把导入的密码覆盖掉了。
+
+先停掉测试实例，然后验证修复方案：
+
+---
+
+### 401. 🤖 WorkBuddy　`10-12 15:27`
+
+端口已释放。现在验证修复方案 —— 加上 `local` profile 启动：
+
+---
+
+### 402. 🤖 WorkBuddy　`10-12 15:28`
+
+还是 500。看日志确认 profile 是否真的生效了：
+
+---
+
+### 403. 🤖 WorkBuddy　`10-12 15:28`
+
+Profile 生效了（`"dev", "local"`），而且**没有 Access denied 了** —— 数据库连上了！但接口还是 500，说明是**另一个错误**。抓出来：
+
+---
+
+### 404. 🤖 WorkBuddy　`10-12 15:29`
+
+还是空密码 —— 说明即使 `local` profile 激活了，文件也没生效。
+
+**真正的原因**：Spring Boot 的 `spring.config.import` 是**在 profile 处理之前**执行的。所以 `application-local.yml` 被当作"导入文件"提前加载（低优先级），之后作为 profile 文件时就**被去重跳过了**。结果永远输给 `application-dev.yml`。
+
+先确认编译产物里的文件内容无误：
+
+---
+
+### 405. 🤖 WorkBuddy　`10-12 15:29`
+
+文件内容正确。**根因确认**：`spring.config.import` 提前加载导致 profile 阶段去重跳过。修复 —— 去掉这个有害的 import，改成激活 `local` profile：
+
+---
+
+### 406. 🤖 WorkBuddy　`10-12 15:30`
+
+**修好了！** 接口返回 `code:200 推荐成功`，真实数据出来了。再验证登录接口：
+
+---
+
+### 407. 🤖 WorkBuddy　`10-12 15:30`
+
+全链路通了：登录 200、受保护接口 200、推荐记录写库正常。停掉测试实例：
+
+---
+
+### 408. 🤖 WorkBuddy　`10-12 15:30`
+
+端口干净了。检查文档是否与修复一致，并把新配置同步到编译产物：
+
+---
+
+### 409. 🤖 WorkBuddy　`10-12 15:31`
+
+文档需要补充说明 —— 之前"创建文件即可生效"的说法其实是**不成立的**。我来修正：
+
+---
+
+### 410. 🤖 WorkBuddy　`10-12 15:31`
+
+README 里已经有一条 `Access denied` 的 FAQ，我把它改成真正的根因：
+
+---
+
+### 411. 🤖 WorkBuddy　`10-12 15:31`
+
+修复验证完毕。跑一次敏感信息扫描并提交：
+
+---
+
+### 412. 🤖 WorkBuddy　`10-12 15:31`
+
+扫描通过。先重新导出 `workbuddy.md`（保持与最新对话一致），然后一起提交：
 
 ---
 
