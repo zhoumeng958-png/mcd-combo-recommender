@@ -19,7 +19,24 @@ public class RecommenderProperties {
     private int topN = 5;
 
     /**
-     * 各策略权重：key 为策略名（budget/taste/people/timeSlot/popularity/diversity/childFriendly）
+     * 热量档位分界线（kcal）：≤ 该值算「热量偏低」，&gt; 该值算「热量偏高」。
+     * 对应用户在页面上选择的「热量偏低 / 热量偏高」。
+     */
+    private int calorieThreshold = 1000;
+
+    /**
+     * 性价比策略的「每元热量」下界（kcal/元）：≤ 该值记 50 分。
+     * 与 {@link #valueKcalPerYuanMax} 一起构成线性映射区间。
+     */
+    private double valueKcalPerYuanMin = 20D;
+
+    /**
+     * 性价比策略的「每元热量」上界（kcal/元）：≥ 该值记 100 分。
+     */
+    private double valueKcalPerYuanMax = 30D;
+
+    /**
+     * 各策略权重：key 为策略名（value/taste/people/timeSlot/popularity/diversity/childFriendly）
      */
     private Map<String, Double> weights = new LinkedHashMap<>();
 

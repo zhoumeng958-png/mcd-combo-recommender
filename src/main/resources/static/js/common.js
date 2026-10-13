@@ -147,6 +147,19 @@ window.McdUtil = {
         return map[code] || code || '-';
     },
 
+    /**
+     * 套餐分类码 -> 配色 class（配合 app.css 里的 .cat-tag.* 使用）
+     * 用途：把默认的灰色分类标签换成每个分类各自的配色
+     */
+    categoryClass(code) {
+        const map = {
+            CLASSIC: 'cat-classic', SPICY: 'cat-spicy', VALUE: 'cat-value',
+            FAMILY: 'cat-family', BREAKFAST: 'cat-breakfast',
+            TEA: 'cat-tea', DESSERT: 'cat-dessert'
+        };
+        return map[code] || 'cat-default';
+    },
+
     /** 单品分类码 -> 中文 */
     productCategoryText(code) {
         const map = {
@@ -156,10 +169,19 @@ window.McdUtil = {
         return map[code] || code || '-';
     },
 
+    /** 单品分类码 -> 配色 class（配合 app.css 里的 .cat-tag 使用） */
+    productCategoryClass(code) {
+        const map = {
+            HAMBURGER: 'pcat-hamburger', SIDE: 'pcat-side', DRINK: 'pcat-drink',
+            DESSERT: 'pcat-dessert', BREAKFAST: 'pcat-breakfast'
+        };
+        return map[code] || 'cat-default';
+    },
+
     /** 策略名称 -> 中文 */
     strategyText(key) {
         const map = {
-            budget: '预算匹配', taste: '口味匹配', people: '人数适配',
+            value: '性价比', budget: '预算匹配', taste: '口味匹配', people: '人数适配',
             timeSlot: '时段适配', popularity: '人气热度', diversity: '多样性',
             childFriendly: '儿童友好'
         };

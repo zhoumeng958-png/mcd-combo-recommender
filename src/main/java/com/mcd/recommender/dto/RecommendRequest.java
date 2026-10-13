@@ -24,11 +24,12 @@ public class RecommendRequest implements Serializable {
     private String userId;
 
     @DecimalMin(value = "0.0", message = "预算下限不能为负数")
-    @Schema(description = "预算下限（元）", example = "30")
+    @Schema(description = "预算下限（元）。与 budgetMax 一起构成**硬边界**："
+            + "价格不在区间内的套餐在打分之前就被淘汰，不会出现在结果里", example = "30")
     private BigDecimal budgetMin;
 
     @DecimalMin(value = "0.0", message = "预算上限不能为负数")
-    @Schema(description = "预算上限（元）", example = "60")
+    @Schema(description = "预算上限（元）。见 budgetMin 的说明", example = "60")
     private BigDecimal budgetMax;
 
     @Schema(description = "偏好口味标签，命中越多分越高", example = "[\"经典\",\"牛肉\"]")
@@ -60,11 +61,17 @@ public class RecommendRequest implements Serializable {
     @Schema(description = "期望辣度 0-3，0 表示不吃辣", example = "0")
     private Integer spicyLevel;
 
-    @Schema(description = "单份热量上限 kcal（减脂场景可用）", example = "1200")
+    @Schema(description = "热量偏好档位：LOW=热量偏低 / HIGH=热量偏高，不传=不限。"
+            + "分界线由 recommender.calorie-threshold 配置（默认 1000 kcal）",
+            allowableValues = {"LOW", "HIGH"}, example = "LOW")
+    private String calorieLevel;
+
+    @Schema(description = "单份热量上限 kcal（精确控制时用，一般走 calorieLevel 即可）", example = "1200")
     private Integer maxCalories;
 
     @Min(value = 1, message = "返回数量至少 1")
     @Max(value = 20, message = "返回数量最多 20")
-    @Schema(description = "期望返回的推荐数量，不传取配置默认值", example = "5")
+    @Schema(description = "最多返回几条。一般不用传，默认取配置 recommender.top-n；"
+            + "实际返回数不会超过符合条件的套餐数", example = "5")
     private Integer topN;
 }

@@ -386,6 +386,102 @@ body {
     margin: 0 0 4px;
 }
 
+/* 套餐分类标签：每个分类一套配色，替代 Element 默认的灰色 info 标签
+   用法：<el-tag class="cat-tag" :class="McdUtil.categoryClass(code)"> */
+.cat-tag {
+    border-width: 1px;
+    border-style: solid;
+    font-weight: 500;
+}
+
+.cat-tag.cat-classic {
+    background: #FFFBE6;
+    border-color: #FFE58F;
+    color: #AD8B00;
+}
+
+.cat-tag.cat-spicy {
+    background: #FFF1F0;
+    border-color: #FFA39E;
+    color: #CF1322;
+}
+
+.cat-tag.cat-value {
+    background: #F6FFED;
+    border-color: #B7EB8F;
+    color: #389E0D;
+}
+
+.cat-tag.cat-family {
+    background: #F9F0FF;
+    border-color: #D3ADF7;
+    color: #531DAB;
+}
+
+.cat-tag.cat-breakfast {
+    background: #FFF2E8;
+    border-color: #FFBB96;
+    color: #D4380D;
+}
+
+.cat-tag.cat-tea {
+    background: #E6FFFB;
+    border-color: #87E8DE;
+    color: #08979C;
+}
+
+.cat-tag.cat-dessert {
+    background: #FFF0F6;
+    border-color: #FFADD2;
+    color: #C41D7F;
+}
+
+.cat-tag.cat-default {
+    background: #F4F4F5;
+    border-color: #E9E9EB;
+    color: #909399;
+}
+
+/* 单品分类配色：单品库的「分类」列、推荐页的「套餐包含」标签共用一套颜色，
+   这样同一个分类在哪个页面都是同一个颜色（青=饮料、粉=甜品…）。
+   用法：
+     单品库  <el-tag class="cat-tag" :class="McdUtil.productCategoryClass(code)">
+     套餐包含 <span class="item-tag" :class="McdUtil.productCategoryClass(p.category)"> */
+.cat-tag.pcat-hamburger,
+.combo-items .item-tag.pcat-hamburger {
+    background: #FFF1F0;
+    border-color: #FFA39E;
+    color: #CF1322;
+}
+
+.cat-tag.pcat-side,
+.combo-items .item-tag.pcat-side {
+    background: #FFFBE6;
+    border-color: #FFE58F;
+    color: #AD8B00;
+}
+
+.cat-tag.pcat-drink,
+.combo-items .item-tag.pcat-drink {
+    background: #E6FFFB;
+    border-color: #87E8DE;
+    color: #08979C;
+}
+
+.cat-tag.pcat-dessert,
+.combo-items .item-tag.pcat-dessert {
+    background: #FFF0F6;
+    border-color: #FFADD2;
+    color: #C41D7F;
+}
+
+.cat-tag.pcat-breakfast,
+.combo-items .item-tag.pcat-breakfast {
+    background: #FFF2E8;
+    border-color: #FFBB96;
+    color: #D4380D;
+}
+
 .rec-desc {
     color: #909399;
     font-size: 12.5px;
@@ -501,6 +597,8 @@ body {
 .combo-items .item-tag {
     display: inline-block;
     background: var(--mcd-gray);
+    /* 透明描边打底：带分类配色时由 .pcat-* 换成同色描边，未知分类仍保持无边框的灰底 */
+    border: 1px solid transparent;
     border-radius: 4px;
     padding: 2px 9px;
     margin: 2px 5px 2px 0;

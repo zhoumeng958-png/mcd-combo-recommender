@@ -58,7 +58,8 @@ public class RecommendController {
             @Parameter(description = "忌口标签，逗号分隔，如：香辣") @RequestParam(required = false) String avoidTags,
             @Parameter(description = "就餐人数") @RequestParam(required = false) Integer peopleCount,
             @Parameter(description = "时段：BREAKFAST/LUNCH/TEA/DINNER/LATE_NIGHT") @RequestParam(required = false) String timeSlot,
-            @Parameter(description = "返回数量") @RequestParam(required = false) Integer topN) {
+            @Parameter(description = "热量偏好：LOW=热量偏低 / HIGH=热量偏高，不传=不限") @RequestParam(required = false) String calorieLevel,
+            @Parameter(description = "最多返回几条，不传取配置默认值") @RequestParam(required = false) Integer topN) {
 
         RecommendRequest request = new RecommendRequest();
         request.setUserId("quick_query");
@@ -68,6 +69,7 @@ public class RecommendController {
         request.setAvoidTags(TagUtils.split(avoidTags));
         request.setPeopleCount(peopleCount);
         request.setTimeSlot(timeSlot);
+        request.setCalorieLevel(calorieLevel);
         request.setTopN(topN);
         return Result.success("推荐成功", recommendService.recommend(request));
     }

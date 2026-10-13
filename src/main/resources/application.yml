@@ -20,6 +20,15 @@ spring:
     date-format: yyyy-MM-dd HH:mm:ss
     time-zone: GMT+8
     default-property-inclusion: non_null
+  web:
+    resources:
+      cache:
+        cachecontrol:
+          # 静态资源（js/css）要求浏览器每次带 If-Modified-Since 回来校验：
+          # 文件没变 -> 304（不重传），文件变了 -> 200 拿到新内容。
+          # 不加这行时响应里既没有 ETag 也没有 Cache-Control，浏览器会走
+          # 启发式缓存直接吃本地副本，改了 js/css 刷新页面可能还是旧内容。
+          no-cache: true
 
 # MyBatis-Plus 配置
 mybatis-plus:
@@ -63,13 +72,21 @@ auth:
 
 # 推荐引擎配置
 recommender:
-  # 返回给前端的推荐结果数量
+  # 返回给前端的推荐结果数量（页面已不提供该选项，实际返回数不会超过符合条件的套餐数）
   top-n: 5
+  # 热量档位分界线（kcal）：≤ 该值算「热量偏低」，> 该值算「热量偏高」
+  calorie-threshold: 1000
+  # 性价比策略的「每元热量」参考区间（kcal/元）：
+  #   ≤ 20 记 50 分，≥ 30 记 100 分，中间线性插值
+  value-kcal-per-yuan-min: 20
+  value-kcal-per-yuan-max: 30
   # 各策略权重（加权求和得到最终得分）
   # 注意：键名允许写成 kebab-case，RecommenderProperties 会归一化后匹配
   #      （历史上 time-slot 与策略名 timeSlot 不匹配，导致该权重被静默忽略）
   weights:
-    budget: 1.0          # 预算匹配
+    # 预算不再作为打分维度：它是硬门槛（区间外的套餐直接淘汰）。
+    # 「价格」这一维的打分交给 value —— 预算内谁更划算。
+    value: 1.0           # 性价比（预算内每元热量，候选集内归一化）
     taste: 1.2           # 口味匹配
     people: 1.0          # 人数适配（儿童按 0.6 人折算）
     time-slot: 0.8       # 时段适配

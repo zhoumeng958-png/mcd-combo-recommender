@@ -5,7 +5,7 @@ Vue.component('page-recommend', {
     template: `
     <div class="recommend-page">
         <h2 class="page-title">智能套餐推荐</h2>
-        <p class="page-desc">填写你的偏好，系统会从全部在售套餐中按 6 个维度打分排序，给出最合适的推荐</p>
+        <p class="page-desc">填写你的偏好，系统会从全部在售套餐中按 7 个维度打分排序，给出最合适的推荐</p>
 
         <el-row :gutter="18" class="rec-row">
             <!-- 左侧：条件筛选（卡片撑满高度，标题固定、仅表单区滚动） -->
@@ -23,6 +23,7 @@ Vue.component('page-recommend', {
                             </template>
                             <el-slider v-model="form.budget" range :min="0" :max="200" :step="5"
                                        :marks="{0:'0', 50:'50', 100:'100', 200:'200'}"></el-slider>
+                            <div class="tag-hint">价格区间外的套餐不会出现在推荐结果里</div>
                         </el-form-item>
 
                         <el-form-item label="就餐人数">
@@ -74,18 +75,15 @@ Vue.component('page-recommend', {
                                      :texts="['不辣','微辣','中辣','重辣']"></el-rate>
                         </el-form-item>
 
-                        <el-form-item label="热量上限（可选，减脂用）">
-                            <el-input-number v-model="form.maxCalories" :min="0" :max="5000"
-                                             :step="100" controls-position="right"
-                                             placeholder="不限" style="width:100%"></el-input-number>
-                        </el-form-item>
-
-                        <el-form-item label="返回数量">
-                            <el-radio-group v-model="form.topN" size="mini">
-                                <el-radio-button :label="3">3</el-radio-button>
-                                <el-radio-button :label="5">5</el-radio-button>
-                                <el-radio-button :label="10">10</el-radio-button>
+                        <el-form-item label="热量偏好（可选）">
+                            <el-radio-group v-model="form.calorieLevel" size="mini">
+                                <el-radio-button label="">不限</el-radio-button>
+                                <el-radio-button label="LOW">热量偏低</el-radio-button>
+                                <el-radio-button label="HIGH">热量偏高</el-radio-button>
                             </el-radio-group>
+                            <div class="tag-hint">
+                                以 {{ calorieThreshold }} kcal 为界：一份套餐不超过它算「偏低」，超过算「偏高」
+                            </div>
                         </el-form-item>
 
                         <el-button type="danger" icon="el-icon-magic-stick"
@@ -107,8 +105,7 @@ Vue.component('page-recommend', {
                         <div>{{ result.summary }}</div>
                         <div style="margin-top:4px;font-size:12px;color:#B08A00">
                             候选套餐 {{ result.totalCandidates }} 个 ·
-                            实际时段「{{ McdUtil.timeSlotText(result.timeSlot) }}」·
-                            计算耗时 {{ result.costMs }} ms
+                            实际时段「{{ McdUtil.timeSlotText(result.timeSlot) }}」
                         </div>
                     </div>
                 </div>
@@ -144,7 +141,8 @@ Vue.component('page-recommend', {
                                 </div>
                                 <p class="rec-desc">{{ item.combo.description }}</p>
                                 <div style="margin-top:6px">
-                                    <el-tag size="mini" type="info" style="margin-right:5px">
+                                    <el-tag size="mini" style="margin-right:5px"
+                                            :class="['cat-tag', McdUtil.categoryClass(item.combo.category)]">
                                         {{ McdUtil.categoryText(item.combo.category) }}
                                     </el-tag>
                                     <el-tag v-for="t in item.combo.tasteTagList" :key="t"
@@ -178,7 +176,8 @@ Vue.component('page-recommend', {
                         <div class="combo-items">
                             <i class="el-icon-food"></i>
                             <span style="margin-right:8px">套餐包含：</span>
-                            <span v-for="p in item.combo.items" :key="p.id" class="item-tag">
+                            <span v-for="p in item.combo.items" :key="p.id" class="item-tag"
+                                  :class="McdUtil.productCategoryClass(p.category)">
                                 {{ p.name }} ×{{ p.quantity }}
                             </span>
                         </div>
@@ -218,6 +217,11 @@ Vue.component('page-recommend', {
             McdUtil: McdUtil,
             loading: false,
             result: null,
+            /**
+             * 热量档位分界线（kcal），仅用于界面提示。
+             * 必须与后端 application.yml 的 recommender.calorie-threshold 保持一致。
+             */
+            calorieThreshold: 1000,
             form: {
                 budget: [30, 60],
                 peopleCount: 1,
@@ -227,8 +231,8 @@ Vue.component('page-recommend', {
                 tasteTags: [],
                 avoidTags: [],
                 spicyRate: 0,
-                maxCalories: undefined,
-                topN: 5
+                /** 热量偏好档位：''=不限 / LOW=热量偏低 / HIGH=热量偏高 */
+                calorieLevel: ''
             },
             tasteOptions: ['经典', '香辣', '牛肉', '鸡肉', '清淡', '芝士', '甜', '醇香', '冰爽', '咸香'],
             avoidOptions: ['香辣', '牛肉', '鸡肉', '鱼', '猪肉', '芝士', '甜'],
@@ -272,11 +276,12 @@ Vue.component('page-recommend', {
 
         buildPayload() {
             const f = this.form;
-            // 不再传 userId，后端自动从登录态取
+            // 不再传 userId，后端自动从登录态取。
+            // 也不再传 topN：返回几条由后端决定——最多取配置值，
+            // 符合条件的套餐不足时有多少给多少，不会为凑数把区间外的塞进来。
             const payload = {
                 peopleCount: f.peopleCount,
-                childCount: f.childCount || 0,
-                topN: f.topN
+                childCount: f.childCount || 0
             };
             if (f.budget && f.budget.length === 2) {
                 payload.budgetMin = f.budget[0];
@@ -286,7 +291,7 @@ Vue.component('page-recommend', {
             if (f.tasteTags.length) payload.tasteTags = f.tasteTags;
             if (f.avoidTags.length) payload.avoidTags = f.avoidTags;
             if (f.spicyRate > 0) payload.spicyLevel = f.spicyRate;
-            if (f.maxCalories) payload.maxCalories = f.maxCalories;
+            if (f.calorieLevel) payload.calorieLevel = f.calorieLevel;
             return payload;
         },
 
@@ -332,8 +337,7 @@ Vue.component('page-recommend', {
             this.form.tasteTags = ['经典', '牛肉'];
             this.form.avoidTags = ['香辣'];
             this.form.spicyRate = 0;
-            this.form.maxCalories = undefined;
-            this.form.topN = 5;
+            this.form.calorieLevel = '';
             this.doRecommend();
         },
 
@@ -346,8 +350,7 @@ Vue.component('page-recommend', {
                 tasteTags: [],
                 avoidTags: [],
                 spicyRate: 0,
-                maxCalories: undefined,
-                topN: 5
+                calorieLevel: ''
             };
             this.result = null;
         }

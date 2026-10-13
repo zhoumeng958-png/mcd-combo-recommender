@@ -11,10 +11,10 @@ Vue.component('page-product', {
             <el-form :inline="true" size="small">
                 <el-form-item label="名称">
                     <el-input v-model="query.keyword" placeholder="输入单品名称"
-                              clearable style="width:170px" @keyup.enter.native="load"></el-input>
+                              clearable style="width:170px" @keyup.enter.native="onSearch"></el-input>
                 </el-form-item>
                 <el-form-item label="分类">
-                    <el-radio-group v-model="query.category" size="mini" @change="load">
+                    <el-radio-group v-model="query.category" size="mini" @change="onSearch">
                         <el-radio-button label="">全部</el-radio-button>
                         <el-radio-button v-for="c in categories" :key="c.value" :label="c.value">
                             {{ c.label }}
@@ -22,18 +22,20 @@ Vue.component('page-product', {
                     </el-radio-group>
                 </el-form-item>
                 <el-form-item>
-                    <el-button type="danger" icon="el-icon-search" @click="load">查询</el-button>
+                    <el-button type="danger" icon="el-icon-search" @click="onSearch">查询</el-button>
                 </el-form-item>
             </el-form>
         </el-card>
 
         <el-card shadow="never" v-loading="loading">
-            <el-table :data="list" size="small" border stripe style="width:100%">
-                <el-table-column prop="id" label="ID" width="60"></el-table-column>
+            <el-table :data="list" row-key="id" size="small" border stripe style="width:100%">
+                <el-table-column type="index" label="序号" width="60"
+                                 :index="rowIndex"></el-table-column>
                 <el-table-column prop="name" label="单品名称" min-width="130"></el-table-column>
                 <el-table-column label="分类" width="90">
                     <template slot-scope="s">
-                        <el-tag size="mini" type="info">
+                        <el-tag size="mini"
+                                :class="['cat-tag', McdUtil.productCategoryClass(s.row.category)]">
                             {{ McdUtil.productCategoryText(s.row.category) }}
                         </el-tag>
                     </template>
@@ -107,6 +109,21 @@ Vue.component('page-product', {
     },
 
     methods: {
+        /** 序号：跨分页连续（第 2 页从 11 开始），而不是数据库主键 */
+        rowIndex(i) {
+            const cur = Number(this.query.current) || 1;
+            const size = Number(this.query.size) || 10;
+            return (cur - 1) * size + i + 1;
+        },
+
+        /** 筛选条件变化：必须先回到第 1 页再查。
+         *  否则在第 2 页切到结果更少的分类时，请求的是「第 2 页」，
+         *  分页器会跳回第 1 页但表格不会重新加载，页面一直是空的。 */
+        onSearch() {
+            this.query.current = 1;
+            this.load();
+        },
+
         load() {
             this.loading = true;
             McdApi.productPage(this.query)

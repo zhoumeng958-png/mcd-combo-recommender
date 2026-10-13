@@ -8,6 +8,7 @@ import com.mcd.recommender.config.RecommenderProperties;
 import com.mcd.recommender.dto.RecommendRequest;
 import com.mcd.recommender.entity.Combo;
 import com.mcd.recommender.entity.RecommendRecord;
+import com.mcd.recommender.enums.CalorieLevel;
 import com.mcd.recommender.enums.ProductCategory;
 import com.mcd.recommender.enums.TimeSlot;
 import com.mcd.recommender.mapper.ComboMapper;
@@ -69,35 +70,42 @@ public class RecommendServiceImpl implements RecommendService {
         }
 
         // 3. 硬性条件过滤（不满足直接淘汰，不参与打分）
+        //    预算区间与热量档位都是「硬边界」，区间外的套餐不会出现在结果里。
         candidates = applyHardFilter(request, candidates);
-        if (candidates.isEmpty()) {
-            throw new BusinessException(ResultCode.RECOMMEND_NO_RESULT, "没有符合热量要求的套餐，请放宽条件");
-        }
 
-        // 4. 批量装配 VO（一次查明细，避免 N+1）
-        //    提前到打分之前：策略需要知道套餐「内容」（例如是否含甜品），
-        //    而且取完 TopN 后还能复用这份结果，不额外增加查询。
-        Map<Long, ComboVO> comboVoMap = comboService.toVOList(candidates).stream()
-                .collect(Collectors.toMap(ComboVO::getId, Function.identity(), (a, b) -> a));
+        // 4./5. 装配 VO + 策略引擎打分
+        //    过滤后可能一个都不剩（例如「预算 ¥15-35 + 热量偏高」这种组合），
+        //    这属于正常的条件组合结果、不是错误，因此不抛异常，
+        //    而是返回空结果 + 一句可执行的建议（buildSummary 已处理空列表）。
+        Map<Long, ComboVO> comboVoMap = new LinkedHashMap<>();
+        List<ScoredCombo> scoredList = new ArrayList<>();
+        if (!candidates.isEmpty()) {
+            // 批量装配 VO（一次查明细，避免 N+1）
+            // 提前到打分之前：策略需要知道套餐「内容」（例如是否含甜品），
+            // 而且取完 TopN 后还能复用这份结果，不额外增加查询。
+            comboVoMap = comboService.toVOList(candidates).stream()
+                    .collect(Collectors.toMap(ComboVO::getId, Function.identity(), (a, b) -> a));
 
-        // 5. 策略引擎打分
-        RecommendContext context = new RecommendContext(request, candidates, timeSlot);
-        for (Combo combo : candidates) {
-            ComboVO vo = comboVoMap.get(combo.getId());
-            if (vo == null || vo.getItems() == null) {
-                continue;
+            RecommendContext context = new RecommendContext(request, candidates, timeSlot);
+            for (Combo combo : candidates) {
+                ComboVO vo = comboVoMap.get(combo.getId());
+                if (vo == null || vo.getItems() == null) {
+                    continue;
+                }
+                Set<ProductCategory> categories = vo.getItems().stream()
+                        .map(item -> ProductCategory.of(item.getCategory()))
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toSet());
+                context.putCategories(combo.getId(), categories);
             }
-            Set<ProductCategory> categories = vo.getItems().stream()
-                    .map(item -> ProductCategory.of(item.getCategory()))
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toSet());
-            context.putCategories(combo.getId(), categories);
+            scoredList = strategyEngine.recommend(context);
         }
-        List<ScoredCombo> scoredList = strategyEngine.recommend(context);
 
         // 6. 截取 TopN
+        //    注意：topN 只是「最多几条」，不是「必须凑够几条」。
+        //    符合条件的有 3 个就返回 3 个，不会为了凑数把区间外的套餐补进来。
         int topN = request.getTopN() != null ? request.getTopN() : properties.getTopN();
-        topN = Math.min(Math.max(topN, 1), scoredList.size());
+        topN = Math.min(Math.max(topN, 0), scoredList.size());
         List<ScoredCombo> topList = scoredList.subList(0, topN);
 
         List<RecommendItemVO> items = new ArrayList<>(topList.size());
@@ -154,35 +162,90 @@ public class RecommendServiceImpl implements RecommendService {
     }
 
     /**
-     * 硬性过滤：热量上限
+     * 硬性过滤：预算区间 + 热量档位 + 热量上限，不满足的套餐直接淘汰、不参与打分。
+     * <p>
+     * 为什么预算要做硬过滤而不是只打分：用户选了 ¥15-35，就该只看到 ¥15-35 的套餐。
+     * 若只靠打分扣分，区间外的套餐仍可能因其他维度得分高而挤进榜单，
+     * 看起来就是「系统没按我选的价格来」。
+     * <p>
+     * 预算成为硬门槛之后，「价格」这一维的打分交给 value（性价比）策略——
+     * 在预算内比较谁更划算，而不是给所有幸存者都打 100 分。
      */
     private List<Combo> applyHardFilter(RecommendRequest request, List<Combo> candidates) {
-        if (request.getMaxCalories() == null) {
-            return candidates;
+        final BigDecimal min = request.getBudgetMin();
+        final BigDecimal max = request.getBudgetMax();
+        final CalorieLevel level = CalorieLevel.of(request.getCalorieLevel());
+        final Integer maxCalories = request.getMaxCalories();
+        final int threshold = properties.getCalorieThreshold();
+
+        return candidates.stream().filter(c -> {
+            // ① 预算区间（闭区间）
+            BigDecimal price = c.getPrice();
+            if (price != null) {
+                if (min != null && price.compareTo(min) < 0) {
+                    return false;
+                }
+                if (max != null && price.compareTo(max) > 0) {
+                    return false;
+                }
+            }
+            // ② 热量档位：偏低 = ≤ 阈值，偏高 = > 阈值
+            Integer calories = c.getCalories();
+            if (calories != null && level != null) {
+                if (level == CalorieLevel.LOW && calories > threshold) {
+                    return false;
+                }
+                if (level == CalorieLevel.HIGH && calories <= threshold) {
+                    return false;
+                }
+            }
+            // ③ 精确热量上限（API 直接给数值时）
+            if (calories != null && maxCalories != null && calories > maxCalories) {
+                return false;
+            }
+            return true;
+        }).collect(Collectors.toList());
+    }
+
+    /**
+     * 把「用户设了哪些硬性条件」拼成一段可读文字，用于摘要与空结果提示
+     */
+    private String describeConditions(RecommendRequest request) {
+        List<String> conds = new ArrayList<>();
+        if (request.getBudgetMax() != null) {
+            BigDecimal min = request.getBudgetMin();
+            String range = min == null
+                    ? "¥" + fmt(request.getBudgetMax()) + " 以内"
+                    : "¥" + fmt(min) + "-¥" + fmt(request.getBudgetMax());
+            conds.add("预算 " + range);
         }
-        final int maxCalories = request.getMaxCalories();
-        return candidates.stream()
-                .filter(c -> c.getCalories() == null || c.getCalories() <= maxCalories)
-                .collect(Collectors.toList());
+        CalorieLevel level = CalorieLevel.of(request.getCalorieLevel());
+        if (level != null) {
+            conds.add(level.getDesc() + "（以 " + properties.getCalorieThreshold() + " kcal 为界）");
+        }
+        if (request.getMaxCalories() != null) {
+            conds.add("热量 ≤ " + request.getMaxCalories() + " kcal");
+        }
+        return String.join("、", conds);
     }
 
     /**
      * 生成一句话推荐总结
      */
     private String buildSummary(RecommendRequest request, TimeSlot timeSlot, List<RecommendItemVO> items) {
+        String condText = describeConditions(request);
         if (items.isEmpty()) {
-            return "暂时没有找到合适的套餐，试着放宽预算或口味条件吧";
+            StringBuilder empty = new StringBuilder("没有找到同时满足这些条件的套餐");
+            if (!condText.isEmpty()) {
+                empty.append("（").append(condText).append("）");
+            }
+            empty.append("，试着放宽预算范围或换个热量档位吧");
+            return empty.toString();
         }
         StringBuilder sb = new StringBuilder();
         sb.append("当前是「").append(timeSlot.getDesc()).append("」时段，");
-        if (request.getBudgetMax() != null) {
-            sb.append("预算 ");
-            if (request.getBudgetMin() != null) {
-                sb.append("¥").append(fmt(request.getBudgetMin())).append("-");
-            } else {
-                sb.append("¥");
-            }
-            sb.append("¥").append(fmt(request.getBudgetMax())).append("，");
+        if (!condText.isEmpty()) {
+            sb.append(condText).append("，");
         }
         if (request.getPeopleCount() != null) {
             int adults = request.getPeopleCount();

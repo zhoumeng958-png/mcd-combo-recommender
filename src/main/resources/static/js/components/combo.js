@@ -11,7 +11,7 @@ Vue.component('page-combo', {
             <el-form :inline="true" size="small">
                 <el-form-item label="关键词">
                     <el-input v-model="query.keyword" placeholder="标签或食物，如 牛肉 / 薯条"
-                              clearable style="width:200px" @keyup.enter.native="load"></el-input>
+                              clearable style="width:200px" @keyup.enter.native="onSearch"></el-input>
                 </el-form-item>
                 <el-form-item label="分类">
                     <el-select v-model="query.category" placeholder="全部" clearable
@@ -42,7 +42,7 @@ Vue.component('page-combo', {
                     </el-radio-group>
                 </el-form-item>
                 <el-form-item>
-                    <el-button type="danger" icon="el-icon-search" @click="load">查询</el-button>
+                    <el-button type="danger" icon="el-icon-search" @click="onSearch">查询</el-button>
                     <el-button icon="el-icon-refresh-left" @click="reset">重置</el-button>
                 </el-form-item>
             </el-form>
@@ -59,7 +59,8 @@ Vue.component('page-combo', {
                                     <div class="rec-name" style="font-size:15px">{{ c.name }}</div>
                                     <div style="font-size:11px;color:#C0C4CC;margin-top:2px">{{ c.code }}</div>
                                 </div>
-                                <el-tag size="mini" type="info">
+                                <el-tag size="mini"
+                                        :class="['cat-tag', McdUtil.categoryClass(c.category)]">
                                     {{ McdUtil.categoryText(c.category) }}
                                 </el-tag>
                             </div>
@@ -201,6 +202,12 @@ Vue.component('page-combo', {
     },
 
     methods: {
+        /** 查询：先回到第 1 页再查，避免在第 2 页筛出更少结果时停在空页 */
+        onSearch() {
+            this.query.current = 1;
+            this.load();
+        },
+
         load() {
             this.loading = true;
             McdApi.comboPage(this.query)
