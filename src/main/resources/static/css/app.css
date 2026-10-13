@@ -237,6 +237,71 @@ body {
     margin: 0 0 20px;
 }
 
+/* ---------------- 推荐页：整页不滚动，左右各自独立滚动 ---------------- */
+/*
+   高度 = 100vh − 头部 64px − .mcd-main 上下内边距 70px（22 + 48）
+   两栏都拿到确定高度后，内部滚动条才会生效，整页就不会跟着滚了。
+*/
+.recommend-page {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 134px);
+    min-height: 420px;
+}
+
+.recommend-page .page-desc {
+    margin-bottom: 14px;
+}
+
+.recommend-page .rec-row {
+    flex: 1;
+    min-height: 0;
+}
+
+.recommend-page .rec-col {
+    height: 100%;
+}
+
+/* 左侧：卡片撑满高度，「我的偏好」标题固定，只有表单区滚动 */
+.recommend-page .rec-col-left .el-card {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.recommend-page .rec-col-left .el-card__body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+}
+
+/* 右侧：结果区独立滚动 */
+.recommend-page .rec-col-right {
+    overflow-y: auto;
+}
+
+/* 窄屏：栅格在 <992px 时两栏堆叠，恢复自然高度，避免被压扁 */
+@media (max-width: 991px) {
+    .recommend-page {
+        height: auto;
+        min-height: 0;
+    }
+    .recommend-page .rec-row {
+        flex: none;
+    }
+    .recommend-page .rec-col,
+    .recommend-page .rec-col-left .el-card {
+        height: auto;
+    }
+    .recommend-page .rec-col-left .el-card__body,
+    .recommend-page .rec-col-right {
+        overflow: visible;
+    }
+    .recommend-page .rec-col-right {
+        margin-top: 18px;
+    }
+}
+
 /* ---------------- 卡片 ---------------- */
 .el-card {
     border-radius: 10px !important;
@@ -351,19 +416,31 @@ body {
     display: block;
 }
 
-/* 综合得分 */
+/* 综合得分：所有推荐结果都展示，第一名做强调 */
 .score-box {
     text-align: center;
     padding: 0 10px;
     flex-shrink: 0;
+    min-width: 76px;
+}
+
+/* 非第一名：字号与颜色都收敛，避免抢走第一名的视觉焦点 */
+.score-num {
+    font-size: 20px;
+    font-weight: 700;
+    color: #C45656;
+    line-height: 1;
+}
+
+/* 第一名：放大加粗，使用品牌红 */
+.score-box.score-top {
     min-width: 88px;
 }
 
-.score-num {
+.score-box.score-top .score-num {
     font-size: 26px;
     font-weight: 800;
     color: var(--mcd-red);
-    line-height: 1;
 }
 
 .score-label {
@@ -488,6 +565,70 @@ body {
 /* 表单区 */
 .filter-form .el-form-item {
     margin-bottom: 14px;
+}
+
+/* 标签行：左侧标题 + 右侧实时数值（让滑块的取值一直可见，不必悬停） */
+.filter-form .el-form-item__label {
+    width: 100%;
+}
+
+.filter-form .label-line {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.filter-form .label-value {
+    color: var(--mcd-red);
+    font-weight: 700;
+    font-size: 13px;
+}
+
+/* 大人 / 儿童 输入行 */
+.people-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.people-row .people-label {
+    font-size: 13px;
+    color: #606266;
+    flex-shrink: 0;
+}
+
+/* 偏好 / 忌口 互斥说明 */
+.tag-hint {
+    font-size: 12px;
+    color: #909399;
+    line-height: 1.5;
+    margin-top: 6px;
+}
+
+/* 口味偏好 / 忌口：改用等宽网格排列
+   Element 默认是 inline-block 流式排列（右边距 30px + 相邻左边距 10px），
+   标签宽度受字体渲染影响会有细微差异，累积后每行起点就对不齐了。
+   改成 grid 后每列等宽，行列都能对齐。 */
+.filter-form .el-checkbox-group {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+    gap: 8px 10px;
+}
+
+/* 清掉 Element 自带的 margin，避免和 grid 的 gap 叠加 */
+.filter-form .el-checkbox,
+.filter-form .el-checkbox.is-bordered,
+.filter-form .el-checkbox.is-bordered + .el-checkbox.is-bordered {
+    margin: 0;
+    width: 100%;
+    display: flex;
+    align-items: center;
+}
+
+/* 被另一方选走而置灰的标签，光标也给个提示 */
+.filter-form .el-checkbox.is-disabled {
+    cursor: not-allowed;
 }
 
 /* 表格微调 */

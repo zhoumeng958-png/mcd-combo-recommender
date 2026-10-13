@@ -33,7 +33,9 @@ public class ComboController {
 
     private final ComboService comboService;
 
-    @Operation(summary = "分页查询套餐", description = "支持关键词、分类、价格区间、人数筛选与排序")
+    @Operation(summary = "分页查询套餐",
+            description = "keyword 匹配套餐标签（口味+营销）、套餐名称/编码，以及套餐内含单品名称；"
+                    + "支持分类、价格区间、人数筛选与排序")
     @GetMapping("/page")
     public Result<PageResult<ComboVO>> page(ComboQuery query) {
         return Result.success(comboService.page(query));

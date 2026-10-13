@@ -2,6 +2,7 @@ package com.mcd.recommender.strategy;
 
 import com.mcd.recommender.dto.RecommendRequest;
 import com.mcd.recommender.entity.Combo;
+import com.mcd.recommender.enums.ProductCategory;
 import com.mcd.recommender.enums.TimeSlot;
 import lombok.Getter;
 
@@ -11,6 +12,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * 推荐上下文：在一条流水线上被各个策略读写
@@ -39,6 +41,25 @@ public class RecommendContext {
 
     /** 生效策略的权重：策略名 -> 权重 */
     private final Map<String, Double> effectiveWeights = new LinkedHashMap<>();
+
+    /**
+     * comboId -> 该套餐包含的单品分类集合。
+     * <p>
+     * 由 Service 在打分前批量装载（复用套餐列表装配时的那次查询，不额外增加 SQL），
+     * 供策略判断「套餐内容」用——例如儿童友好策略需要知道是否含甜品/冰淇淋。
+     */
+    private final Map<Long, Set<ProductCategory>> comboCategories = new HashMap<>();
+
+    public void putCategories(Long comboId, Set<ProductCategory> categories) {
+        comboCategories.put(comboId, categories);
+    }
+
+    /**
+     * 取某套餐包含的单品分类，未装载时返回空集合（策略需自行容错）
+     */
+    public Set<ProductCategory> categoriesOf(Long comboId) {
+        return comboCategories.getOrDefault(comboId, Collections.emptySet());
+    }
 
     public RecommendContext(RecommendRequest request, List<Combo> candidates, TimeSlot effectiveTimeSlot) {
         this.request = request;

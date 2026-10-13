@@ -3,29 +3,45 @@
  */
 Vue.component('page-recommend', {
     template: `
-    <div>
+    <div class="recommend-page">
         <h2 class="page-title">智能套餐推荐</h2>
         <p class="page-desc">填写你的偏好，系统会从全部在售套餐中按 6 个维度打分排序，给出最合适的推荐</p>
 
-        <el-row :gutter="18">
-            <!-- 左侧：条件筛选 -->
-            <el-col :xs="24" :sm="24" :md="8" :lg="7">
+        <el-row :gutter="18" class="rec-row">
+            <!-- 左侧：条件筛选（卡片撑满高度，标题固定、仅表单区滚动） -->
+            <el-col :xs="24" :sm="24" :md="8" :lg="7" class="rec-col rec-col-left">
                 <el-card shadow="never">
                     <div slot="header" class="card-title">我的偏好</div>
 
                     <el-form label-position="top" size="small" class="filter-form">
-                        <el-form-item label="预算范围（元）">
+                        <el-form-item>
+                            <template slot="label">
+                                <div class="label-line">
+                                    <span>预算范围（元）</span>
+                                    <b class="label-value">¥{{ form.budget[0] }} ~ ¥{{ form.budget[1] }}</b>
+                                </div>
+                            </template>
                             <el-slider v-model="form.budget" range :min="0" :max="200" :step="5"
                                        :marks="{0:'0', 50:'50', 100:'100', 200:'200'}"></el-slider>
                         </el-form-item>
 
                         <el-form-item label="就餐人数">
-                            <el-radio-group v-model="form.peopleCount" size="mini">
-                                <el-radio-button :label="1">1人</el-radio-button>
-                                <el-radio-button :label="2">2人</el-radio-button>
-                                <el-radio-button :label="3">3人</el-radio-button>
-                                <el-radio-button :label="4">4人</el-radio-button>
-                            </el-radio-group>
+                            <div class="people-row">
+                                <span class="people-label">大人</span>
+                                <el-input-number v-model="form.peopleCount" :min="1" :max="20"
+                                                 size="mini" controls-position="right"
+                                                 style="width:100px"></el-input-number>
+                                <span class="people-label">儿童</span>
+                                <el-input-number v-model="form.childCount" :min="0" :max="10"
+                                                 size="mini" controls-position="right"
+                                                 style="width:100px"></el-input-number>
+                            </div>
+                            <div class="tag-hint">
+                                共 {{ form.peopleCount + form.childCount }} 人，按
+                                <b>{{ effectivePeople }}</b> 人份计算分量
+                                （儿童饭量按 0.6 人计，避免点多了浪费）；
+                                带儿童时会优先推荐适合儿童的口味
+                            </div>
                         </el-form-item>
 
                         <el-form-item label="就餐时段">
@@ -39,15 +55,18 @@ Vue.component('page-recommend', {
                         <el-form-item label="口味偏好（可多选）">
                             <el-checkbox-group v-model="form.tasteTags">
                                 <el-checkbox v-for="t in tasteOptions" :key="t" :label="t"
-                                             border size="mini">{{ t }}</el-checkbox>
+                                             border size="mini"
+                                             :disabled="form.avoidTags.indexOf(t) >= 0">{{ t }}</el-checkbox>
                             </el-checkbox-group>
                         </el-form-item>
 
                         <el-form-item label="忌口（可多选）">
                             <el-checkbox-group v-model="form.avoidTags">
                                 <el-checkbox v-for="t in avoidOptions" :key="t" :label="t"
-                                             border size="mini">{{ t }}</el-checkbox>
+                                             border size="mini"
+                                             :disabled="form.tasteTags.indexOf(t) >= 0">{{ t }}</el-checkbox>
                             </el-checkbox-group>
+                            <div class="tag-hint">偏好与忌口不能是同一个标签，已被选走的口味会置灰</div>
                         </el-form-item>
 
                         <el-form-item label="期望辣度">
@@ -79,8 +98,8 @@ Vue.component('page-recommend', {
                 </el-card>
             </el-col>
 
-            <!-- 右侧：推荐结果 -->
-            <el-col :xs="24" :sm="24" :md="16" :lg="17">
+            <!-- 右侧：推荐结果（独立滚动，整页保持不动） -->
+            <el-col :xs="24" :sm="24" :md="16" :lg="17" class="rec-col rec-col-right">
                 <!-- 结果摘要 -->
                 <div v-if="result" class="summary-bar">
                     <i class="el-icon-star-on"></i>
@@ -134,7 +153,8 @@ Vue.component('page-recommend', {
                                 </div>
                             </div>
 
-                            <div class="score-box" v-if="item.rank === 1">
+                            <!-- 综合得分：所有推荐结果都展示，第一名做强调 -->
+                            <div class="score-box" :class="{'score-top': item.rank === 1}">
                                 <div class="score-num">{{ item.score }}</div>
                                 <div class="score-label">综合得分</div>
                             </div>
@@ -166,7 +186,7 @@ Vue.component('page-recommend', {
                         <!-- 得分明细（折叠） -->
                         <div style="margin-top:10px">
                             <el-button type="text" size="mini"
-                                       @click="item._showDetail = !item._showDetail">
+                                       @click="toggleDetail(item)">
                                 {{ item._showDetail ? '收起得分明细' : '查看得分明细' }}
                                 <i :class="item._showDetail ? 'el-icon-arrow-up' : 'el-icon-arrow-down'"></i>
                             </el-button>
@@ -201,6 +221,8 @@ Vue.component('page-recommend', {
             form: {
                 budget: [30, 60],
                 peopleCount: 1,
+                /** 儿童人数：饭量按 0.6 个大人折算 */
+                childCount: 0,
                 timeSlot: null,
                 tasteTags: [],
                 avoidTags: [],
@@ -218,6 +240,19 @@ Vue.component('page-recommend', {
                 {value: 'LATE_NIGHT', label: '夜宵（21:00 以后）'}
             ]
         };
+    },
+
+    computed: {
+        /**
+         * 等效就餐人数 = 大人 × 1.0 + 儿童 × 0.6
+         * 儿童饭量约为大人的六成，按等效人数匹配套餐分量能减少浪费。
+         * 与后端 PeopleFitStrategy 的折算系数保持一致。
+         */
+        effectivePeople() {
+            const a = Number(this.form.peopleCount) || 0;
+            const c = Number(this.form.childCount) || 0;
+            return Math.round((a + c * 0.6) * 10) / 10;
+        }
     },
 
     created() {
@@ -240,6 +275,7 @@ Vue.component('page-recommend', {
             // 不再传 userId，后端自动从登录态取
             const payload = {
                 peopleCount: f.peopleCount,
+                childCount: f.childCount || 0,
                 topN: f.topN
             };
             if (f.budget && f.budget.length === 2) {
@@ -254,7 +290,27 @@ Vue.component('page-recommend', {
             return payload;
         },
 
+        // 展开 / 收起得分明细
+        // 注意：必须用 this.$set，不能用 item._showDetail = !item._showDetail。
+        // _showDetail 是点击时才新增的属性，Vue 2 无法侦测对象属性的「新增」，
+        // 直接赋值不会触发视图更新，表现为点击按钮毫无反应。
+        toggleDetail(item) {
+            this.$set(item, '_showDetail', !item._showDetail);
+        },
+
         doRecommend() {
+            // 校验：口味偏好与忌口不能出现同一个标签（逻辑自相矛盾）
+            // 界面上已通过置灰阻止，这里是兜底，防止其他途径构造出矛盾条件。
+            const conflict = this.form.tasteTags.filter(t => this.form.avoidTags.indexOf(t) >= 0);
+            if (conflict.length) {
+                this.$message({
+                    type: 'error',
+                    showClose: true,
+                    duration: 5000,
+                    message: '「' + conflict.join('、') + '」不能同时出现在口味偏好和忌口中，请去掉其中一个再试'
+                });
+                return;
+            }
             this.loading = true;
             this.result = null;
             McdApi.recommend(this.buildPayload())
@@ -272,6 +328,7 @@ Vue.component('page-recommend', {
         quickDemo() {
             this.form.budget = [30, 60];
             this.form.peopleCount = 1;
+            this.form.childCount = 0;
             this.form.tasteTags = ['经典', '牛肉'];
             this.form.avoidTags = ['香辣'];
             this.form.spicyRate = 0;
@@ -284,6 +341,7 @@ Vue.component('page-recommend', {
             this.form = {
                 budget: [30, 60],
                 peopleCount: 1,
+                childCount: 0,
                 timeSlot: this.currentSlot(),
                 tasteTags: [],
                 avoidTags: [],

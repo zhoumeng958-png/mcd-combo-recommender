@@ -8,6 +8,7 @@ import com.mcd.recommender.config.RecommenderProperties;
 import com.mcd.recommender.dto.RecommendRequest;
 import com.mcd.recommender.entity.Combo;
 import com.mcd.recommender.entity.RecommendRecord;
+import com.mcd.recommender.enums.ProductCategory;
 import com.mcd.recommender.enums.TimeSlot;
 import com.mcd.recommender.mapper.ComboMapper;
 import com.mcd.recommender.mapper.RecommendRecordMapper;
@@ -16,6 +17,7 @@ import com.mcd.recommender.service.RecommendService;
 import com.mcd.recommender.strategy.RecommendContext;
 import com.mcd.recommender.strategy.ScoredCombo;
 import com.mcd.recommender.strategy.StrategyEngine;
+import com.mcd.recommender.strategy.impl.PeopleFitStrategy;
 import com.mcd.recommender.vo.ComboVO;
 import com.mcd.recommender.vo.RecommendItemVO;
 import com.mcd.recommender.vo.RecommendResponse;
@@ -30,6 +32,8 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -70,19 +74,31 @@ public class RecommendServiceImpl implements RecommendService {
             throw new BusinessException(ResultCode.RECOMMEND_NO_RESULT, "没有符合热量要求的套餐，请放宽条件");
         }
 
-        // 4. 策略引擎打分
+        // 4. 批量装配 VO（一次查明细，避免 N+1）
+        //    提前到打分之前：策略需要知道套餐「内容」（例如是否含甜品），
+        //    而且取完 TopN 后还能复用这份结果，不额外增加查询。
+        Map<Long, ComboVO> comboVoMap = comboService.toVOList(candidates).stream()
+                .collect(Collectors.toMap(ComboVO::getId, Function.identity(), (a, b) -> a));
+
+        // 5. 策略引擎打分
         RecommendContext context = new RecommendContext(request, candidates, timeSlot);
+        for (Combo combo : candidates) {
+            ComboVO vo = comboVoMap.get(combo.getId());
+            if (vo == null || vo.getItems() == null) {
+                continue;
+            }
+            Set<ProductCategory> categories = vo.getItems().stream()
+                    .map(item -> ProductCategory.of(item.getCategory()))
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toSet());
+            context.putCategories(combo.getId(), categories);
+        }
         List<ScoredCombo> scoredList = strategyEngine.recommend(context);
 
-        // 5. 截取 TopN
+        // 6. 截取 TopN
         int topN = request.getTopN() != null ? request.getTopN() : properties.getTopN();
         topN = Math.min(Math.max(topN, 1), scoredList.size());
         List<ScoredCombo> topList = scoredList.subList(0, topN);
-
-        // 6. 批量装配 VO（一次查明细，避免 N+1）
-        List<Combo> topCombos = topList.stream().map(ScoredCombo::getCombo).collect(Collectors.toList());
-        Map<Long, ComboVO> comboVoMap = comboService.toVOList(topCombos).stream()
-                .collect(Collectors.toMap(ComboVO::getId, Function.identity(), (a, b) -> a));
 
         List<RecommendItemVO> items = new ArrayList<>(topList.size());
         int rank = 1;
@@ -169,12 +185,23 @@ public class RecommendServiceImpl implements RecommendService {
             sb.append("¥").append(fmt(request.getBudgetMax())).append("，");
         }
         if (request.getPeopleCount() != null) {
-            sb.append(request.getPeopleCount()).append(" 人用餐，");
+            int adults = request.getPeopleCount();
+            int children = request.getChildCount() == null ? 0 : Math.max(0, request.getChildCount());
+            if (children > 0) {
+                double eff = adults + children * PeopleFitStrategy.CHILD_FACTOR;
+                String effText = eff == Math.rint(eff)
+                        ? String.valueOf((int) eff)
+                        : String.format("%.1f", eff);
+                sb.append(adults).append(" 大人 + ").append(children)
+                        .append(" 儿童（约 ").append(effText).append(" 人份）用餐，");
+            } else {
+                sb.append(adults).append(" 人用餐，");
+            }
         }
         RecommendItemVO top = items.get(0);
         sb.append("为你精选 ").append(items.size()).append(" 个套餐，最推荐「")
                 .append(top.getCombo() == null ? "" : top.getCombo().getName())
-                .append("」，综合得分 ").append(top.getScore()).append(" 分。");
+                .append("」，最高综合得分 ").append(top.getScore()).append(" 分。");
         return sb.toString();
     }
 

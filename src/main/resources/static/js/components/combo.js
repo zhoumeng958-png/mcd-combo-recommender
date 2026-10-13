@@ -5,13 +5,13 @@ Vue.component('page-combo', {
     template: `
     <div>
         <h2 class="page-title">套餐列表</h2>
-        <p class="page-desc">浏览全部在售套餐，可按分类、价格区间筛选与排序</p>
+        <p class="page-desc">浏览全部在售套餐；关键词可搜标签（牛肉、经典）或套餐里的食物（薯条、可乐），也可按分类、价格区间筛选与排序</p>
 
         <el-card shadow="never" style="margin-bottom:16px">
             <el-form :inline="true" size="small">
                 <el-form-item label="关键词">
-                    <el-input v-model="query.keyword" placeholder="套餐名称 / 编码"
-                              clearable style="width:170px" @keyup.enter.native="load"></el-input>
+                    <el-input v-model="query.keyword" placeholder="标签或食物，如 牛肉 / 薯条"
+                              clearable style="width:200px" @keyup.enter.native="load"></el-input>
                 </el-form-item>
                 <el-form-item label="分类">
                     <el-select v-model="query.category" placeholder="全部" clearable

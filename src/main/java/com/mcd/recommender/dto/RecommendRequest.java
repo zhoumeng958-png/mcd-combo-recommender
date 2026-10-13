@@ -39,8 +39,13 @@ public class RecommendRequest implements Serializable {
 
     @Min(value = 1, message = "就餐人数至少 1 人")
     @Max(value = 20, message = "就餐人数最多 20 人")
-    @Schema(description = "就餐人数", example = "1")
+    @Schema(description = "就餐的大人人数", example = "2")
     private Integer peopleCount;
+
+    @Min(value = 0, message = "儿童人数不能为负数")
+    @Max(value = 10, message = "儿童人数最多 10 人")
+    @Schema(description = "就餐的儿童人数，儿童饭量按 0.6 个大人折算", example = "1")
+    private Integer childCount;
 
     @Schema(description = "就餐时段，不传则按当前时间自动推断",
             allowableValues = {"BREAKFAST", "LUNCH", "TEA", "DINNER", "LATE_NIGHT", "ALL_DAY"})

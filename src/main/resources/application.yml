@@ -66,13 +66,16 @@ recommender:
   # 返回给前端的推荐结果数量
   top-n: 5
   # 各策略权重（加权求和得到最终得分）
+  # 注意：键名允许写成 kebab-case，RecommenderProperties 会归一化后匹配
+  #      （历史上 time-slot 与策略名 timeSlot 不匹配，导致该权重被静默忽略）
   weights:
-    budget: 1.0      # 预算匹配
-    taste: 1.2       # 口味匹配
-    people: 1.0      # 人数适配
-    time-slot: 0.8   # 时段适配
-    popularity: 0.6  # 人气热度
-    diversity: 0.4   # 多样性/新鲜感
+    budget: 1.0          # 预算匹配
+    taste: 1.2           # 口味匹配
+    people: 1.0          # 人数适配（儿童按 0.6 人折算）
+    time-slot: 0.8       # 时段适配
+    popularity: 0.6      # 人气热度
+    diversity: 0.4       # 多样性/新鲜感
+    child-friendly: 0.9  # 儿童友好（仅当请求带儿童时生效）
 
 logging:
   level:

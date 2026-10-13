@@ -17,4 +17,15 @@
         ORDER BY totalSales DESC
     </select>
 
+    <!-- 关键词命中「单品名称」时，反查包含这些单品的套餐 ID
+         例：搜「薯条」→ 命中 中薯条/大薯条/小薯条 → 返回所有含它们的套餐 -->
+    <select id="selectComboIdsByProductName" resultType="java.lang.Long">
+        SELECT DISTINCT ci.combo_id
+        FROM mcd_combo_item ci
+                 JOIN mcd_product p ON p.id = ci.product_id
+        WHERE ci.deleted = 0
+          AND p.deleted = 0
+          AND p.name LIKE CONCAT('%', #{keyword}, '%')
+    </select>
+
 </mapper>

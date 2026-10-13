@@ -52,7 +52,21 @@ public class ComboServiceImpl implements ComboService {
 
         if (StringUtils.hasText(query.getKeyword())) {
             String keyword = query.getKeyword().trim();
-            wrapper.and(w -> w.like(Combo::getName, keyword).or().like(Combo::getCode, keyword));
+            // 关键词三类命中：
+            //   ① 套餐标签——口味标签（经典/牛肉/香辣…）+ 营销标签（人气/超值/新品）
+            //   ② 套餐名称与编码
+            //   ③ 套餐内含的单品名称（搜「薯条」→ 含中/大/小薯条的套餐全部命中）
+            List<Long> itemComboIds = comboMapper.selectComboIdsByProductName(keyword);
+            wrapper.and(w -> {
+                w.like(Combo::getTasteTags, keyword)
+                        .or().like(Combo::getTags, keyword)
+                        .or().like(Combo::getName, keyword)
+                        .or().like(Combo::getCode, keyword);
+                // 单品未命中时不追加条件，避免留下悬空的 OR
+                if (!itemComboIds.isEmpty()) {
+                    w.or().in(Combo::getId, itemComboIds);
+                }
+            });
         }
         if (StringUtils.hasText(query.getCategory())) {
             wrapper.eq(Combo::getCategory, query.getCategory().trim().toUpperCase());

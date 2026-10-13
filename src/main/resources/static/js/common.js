@@ -160,7 +160,8 @@ window.McdUtil = {
     strategyText(key) {
         const map = {
             budget: '预算匹配', taste: '口味匹配', people: '人数适配',
-            timeSlot: '时段适配', popularity: '人气热度', diversity: '多样性'
+            timeSlot: '时段适配', popularity: '人气热度', diversity: '多样性',
+            childFriendly: '儿童友好'
         };
         return map[key] || key;
     },

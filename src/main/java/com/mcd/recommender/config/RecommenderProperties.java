@@ -19,15 +19,36 @@ public class RecommenderProperties {
     private int topN = 5;
 
     /**
-     * 各策略权重：key 为策略名（budget/taste/people/timeSlot/popularity/diversity）
+     * 各策略权重：key 为策略名（budget/taste/people/timeSlot/popularity/diversity/childFriendly）
      */
     private Map<String, Double> weights = new LinkedHashMap<>();
 
+    /**
+     * 取某策略的权重，未配置时返回默认值 1.0。
+     * <p>
+     * 注意：配置里可能写成 kebab-case（如 {@code time-slot}），
+     * 而策略名是 camelCase（{@code timeSlot}）。Map 的键**不会**经过 Spring 的宽松绑定，
+     * 直接 {@code containsKey} 会漏配，导致权重被静默忽略、回退成 1.0。
+     * 因此这里做一次归一化匹配（去掉 - 和 _ 并转小写）。
+     */
     public double weightOf(String strategyName) {
-        if (weights == null || !weights.containsKey(strategyName)) {
+        if (weights == null || weights.isEmpty() || strategyName == null) {
             return 1.0D;
         }
         Double w = weights.get(strategyName);
+        if (w == null) {
+            String target = normalize(strategyName);
+            for (Map.Entry<String, Double> entry : weights.entrySet()) {
+                if (normalize(entry.getKey()).equals(target)) {
+                    w = entry.getValue();
+                    break;
+                }
+            }
+        }
         return w == null ? 1.0D : w;
+    }
+
+    private static String normalize(String key) {
+        return key == null ? "" : key.replace("-", "").replace("_", "").toLowerCase();
     }
 }

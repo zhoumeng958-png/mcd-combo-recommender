@@ -15,7 +15,8 @@ public class ComboQuery implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    @Schema(description = "关键词，匹配套餐名称或编码")
+    @Schema(description = "关键词，匹配套餐标签（口味+营销）、套餐名称/编码，以及套餐内含单品名称",
+            example = "牛肉")
     private String keyword;
 
     @Schema(description = "套餐分类")
